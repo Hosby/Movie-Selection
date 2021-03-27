@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="icia.kotlin.mapper.ReservationIf">
+<!-- QUERY에 포함된 문자 중 < > & || 등 이 있다면 XML 파싱을 하지 않도록 -->
+	<select id="getMovieList" resultType="icia.kotlin.beans.Movie">
+		<![CDATA[
+			SELECT MV_CODE AS MVCODE, MV_NAME AS MVNAME, MV_GRADE AS MVGRADE, MV_STATUS AS MVSTATUS, MV_IMAGE AS MVIMAGE, MV_COMMENTS AS MVCOMMENTS 
+			FROM MV WHERE MV_STATUS != 'B'
+		]]> 
+		<if test='mvCode != null'>
+		<![CDATA[	AND MV_CODE = #{mvCode}	]]>
+		</if>
+	</select> 
+	
+	<select id="getScreening" resultType="icia.kotlin.beans.Movie">
+		<![CDATA[
+			SELECT * FROM SCREENING 
+			WHERE MVCODE=#{mvCode} AND MVDATE = #{mvDate}
+		]]>
+	</select>
+	
+	<select id="getSeat" resultType="icia.kotlin.beans.Seat">
+		<![CDATA[
+			SELECT  IS_SEATNUM AS SEATNUM,
+        			IS_TYPE AS SEATTYPE
+			FROM "IS"
+			WHERE IS_SCNUMBER = #{mvScreen}
+			UNION
+			SELECT  RD_SEATNUM AS SEATNUM,
+        RD_TYPE AS SEATTYPE
+			FROM RD WHERE RD_RVCODE 
+				IN(SELECT RV_CODE FROM RV WHERE RV.RV_SISCNUMBER = #{mvScreen} AND 
+						TO_CHAR(RV.RV_SIDATETIME, 'YYYYMMDDHH24MI') = #{mvDateTime})
+		]]>
+	</select>
+	
+</mapper>
